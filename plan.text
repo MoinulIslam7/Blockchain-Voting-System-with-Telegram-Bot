@@ -1,0 +1,21 @@
+Project Idea: Decentralized Voting System using dApp and Telegram bot
+
+Overview:
+Build a decentralized voting system where users can vote on various proposals using a Telegram bot.
+The votes will be recorded on a blockchain to ensure transparency and immutability.
+
+Components
+Telegram Bot: Interacts with users, collects votes, and communicates with the blockchain.
+
+Smart Contract: Manages the proposals and records the votes on the blockchain.
+
+Blockchain Network: Ethereum or any compatible network for deploying the smart contract.
+
+Ethers.js: Facilitates communication between the Telegram bot and the blockchain.
+
+Tools:
+Node.js: Ensure you have Node.js installed.
+Telegraf.js: Install Telegraf.js for building the Telegram bot.
+Truffle: A development framework for Ethereum.
+Ganache: A local blockchain for testing.
+Ethers.js: A JavaScript library for interacting with the Ethereum blockchain.
