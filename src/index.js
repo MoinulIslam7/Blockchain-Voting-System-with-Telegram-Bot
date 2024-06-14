@@ -17,7 +17,7 @@ const wallet = new ethers.Wallet(privateKey, provider);
 // Load the contract ABI and address
 const contractABI = JSON.parse(fs.readFileSync(path.join(__dirname, '../build/contracts/Voting.json'), 'utf8')).abi;
 console.log(contractABI, 'Contract Abi---------------------------------------');
-const contractAddress = '0x0Dc543c9f3933b67cCC6b07CF925AB41F63917e7';
+const contractAddress = '0x0548a4932bC4B87498B801B8398765fEF185Da62';
 const votingContract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 

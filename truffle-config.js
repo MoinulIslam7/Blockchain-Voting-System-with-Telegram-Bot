@@ -2,7 +2,7 @@ module.exports = {
     networks: {
         development: {
             host: "127.0.0.1",     // Localhost (default: ganache-cli running locally)
-            port: 7545,             // Standard Ganache UI port
+            port: 8545,             // Standard Ganache UI port
             network_id: "*",        // Match any network id
         },
     },
