@@ -10,23 +10,14 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Initialize ethers.js
 const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545'); // Ganache
-console.log(process.env.PRIVATE_KEY);
-const privateKey = process.env.PRIVATE_KEY; // Your private key
-const wallet = new ethers.Wallet(privateKey, provider);
-
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 // Load the contract ABI and address
 const contractABI = JSON.parse(fs.readFileSync(path.join(__dirname, '../build/contracts/Voting.json'), 'utf8')).abi;
-console.log(contractABI, 'Contract Abi---------------------------------------');
-const contractAddress = '0x0548a4932bC4B87498B801B8398765fEF185Da62';
-const votingContract = new ethers.Contract(contractAddress, contractABI, wallet);
-
-
-console.log('--------------------------------------------------------------------');
-console.log(votingContract, 'voting contract');
+const votingContract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
 
 // Middleware to log user info and messages
 bot.use((ctx, next) => {
-    console.log(`Received message from ${ctx.from?.username}: ${ctx.message?.text}`);
+    console.log(`Received message from ${ctx.from?.first_name + ctx.from?.last_name}: ${ctx.message?.text}`);
     return next();
 });
 
@@ -52,15 +43,19 @@ bot.command('vote', (ctx) => {
 // Handle callback queries from inline buttons
 const voteHandler = async (ctx, party) => {
     try {
-        console.log(party);
         const tx = await votingContract.vote(party);
         await tx.wait();
         console.log(tx, 'my tx');
         ctx.answerCbQuery();
-        ctx.reply(`You voted for ${party}`);
+        ctx.reply(`Hey ${ctx.from.first_name + ' ' + ctx.from.last_name}, You voted for ${party}`);
     } catch (error) {
-        ctx.answerCbQuery();
-        ctx.reply(`Failed to vote: ${error.message}`);
+        if (error.message.includes("You have already voted.")) {
+            ctx.answerCbQuery();
+            ctx.reply(`Hey ${ctx.from.first_name} ${ctx.from.last_name}, you have already voted.`);
+        } else {
+            ctx.answerCbQuery();
+            ctx.reply(`Failed to vote: ${error.message}`);
+        }
     }
 };
 
@@ -68,6 +63,45 @@ bot.action('Awami_League', (ctx) => voteHandler(ctx, 'Awami League'));
 bot.action('Jatiya_Party', (ctx) => voteHandler(ctx, 'Jatiya Party'));
 bot.action('Bangladesh_National_Party', (ctx) => voteHandler(ctx, 'Bangladesh National Party'));
 bot.action('Jatiya_Samajtantrik_Dal', (ctx) => voteHandler(ctx, 'Jatiya Samajtantrik Dal'));
+
+
+// Command to see votes of each party
+bot.command('votes', async (ctx) => {
+    try {
+        const parties = ["Awami League", "Jatiya Party", "Bangladesh National Party", "Jatiya Samajtantrik Dal"];
+        let response = 'Votes so far:\n';
+        for (const party of parties) {
+            const votes = await votingContract.getVotes(party);
+            response += `${party}: ${votes}\n`;
+        }
+        ctx.reply(response);
+    } catch (error) {
+        console.error('Failed to get votes:', error);
+        ctx.reply(`Failed to get votes: ${error.message}`);
+    }
+});
+
+// Command to see current results
+bot.command('results', async (ctx) => {
+    try {
+        const [parties, votes] = await votingContract.getAllVotes();
+        let response = 'Current results:\n';
+        for (let i = 0; i < parties.length; i++) {
+            response += `${parties[i]}: ${votes[i]}\n`;
+        }
+        ctx.reply(response);
+    } catch (error) {
+        console.error('Failed to get results:', error);
+        ctx.reply(`Failed to get results: ${error.message}`);
+    }
+});
+
+// Command to see the winner
+bot.command('winner', async (ctx) => {
+    const [winner, maxVotes] = await votingContract.getWinner();
+    ctx.reply(`The winner is ${winner} with ${maxVotes} votes`);
+})
+
 
 // Launch the bot
 bot.launch();
